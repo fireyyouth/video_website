@@ -1,0 +1,146 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .app {
+            display: flex;
+        }
+
+        .sidebar {
+            align-self: flex-start;
+            position: sticky;
+            top: 0;
+            border-right: 1px solid lightgray;
+            text-align: center;
+            height: 100vh;
+        }
+
+        .menu {
+            width: 200px;
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .menu-item {
+            padding: 15px;
+        }
+
+        .logo {
+            width: 142px;
+            height: 48px;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            padding: 5px;
+            border-bottom: 1px solid lightgray;
+        }
+
+        .search-form {
+            display: flex;
+            width: 300px;
+            height: 30px;
+            margin: 20px;
+        }
+
+        .search-input {
+            width: 80%;
+            border-radius: 5px 0 0 5px;
+            border: 1px solid lightgray;
+            outline: none;
+        }
+
+        .search-button {
+            width: 20%;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            background-color: lightgray;
+        }
+
+        .search-button:hover {
+            background-color: silver;
+        }
+
+        .viewport {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            margin: 5px;
+        }
+
+        .viewcell {
+            width: 250px;
+        }
+
+        .preview {
+            width: 100%;
+        }
+
+        .menu-item:hover {
+            background-color: lightgray;
+        }
+    </style>
+    <script src="/static/vue.global.js"></script>
+</head>
+
+<body>
+    <div id="app" class="app">
+        <div class="sidebar">
+            <img class="logo"
+                src="https://lf3-cdn-tos.bdxiguastatic.com/obj/ixigua-static/xigua_fe/xigua_video_web_pc/static/media/logo.6aae7c46.svg"></a>
+            <ul class="menu">
+                <li v-for="name in menu" class="menu-item">
+                    <a>
+                        {{ name }}
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <div class="topbar">
+                <form class="search-form">
+                    <input class="search-input">
+                    <button class="search-button">搜索</button>
+                </form>
+            </div>
+            <div class="viewport">
+                <div class="viewcell" v-for="item in items">
+                    <img class="preview" v-bind:src="item.img">
+                    <p>{{ item.title }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const { createApp, ref } = Vue;
+        var app = createApp({
+            data() {
+                return {
+                    'menu': ["特色频道", "电影", "电视剧", "游戏", "影视", "音乐", "纪录片", "大视听", "VLOG", "直播", "农人"],
+                    'items': []
+                }
+            },
+            methods: {
+                update(items) {
+                    this.items = items
+                }
+            }
+        });
+        var vm = app.mount('#app');
+        async function load_data() {
+            const response = await fetch("/api/preview/");
+            const items = await response.json();
+            vm.update(items);
+        }
+        load_data();
+    </script>
+</body>
+
+</html>
