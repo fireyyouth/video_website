@@ -107,7 +107,7 @@
             <div class="topbar">
                 <form class="search-form">
                     <input class="search-input">
-                    <button class="search-button">搜索</button>
+                    <button class="search-button" type="button" onclick="search(this)">搜索</button>
                 </form>
             </div>
             <div class="viewport">
@@ -134,6 +134,12 @@
             }
         });
         var vm = app.mount('#app');
+        async function search(button) {
+            const keywords = button.parentElement.firstElementChild.value;
+            const response = await fetch('/api/search/' + keywords);
+            const items = await response.json();
+            vm.update(items);
+        }
         async function load_data() {
             const response = await fetch("/api/preview/");
             const items = await response.json();
