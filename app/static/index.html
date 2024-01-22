@@ -41,6 +41,9 @@
             background-color: white;
             padding: 5px;
             border-bottom: 1px solid lightgray;
+
+            display: flex;
+            justify-content: space-between;
         }
 
         .search-form {
@@ -88,6 +91,8 @@
         }
     </style>
     <script src="/static/vue.global.js"></script>
+    <link rel="stylesheet" href="/static/element.css">
+    <script src="/static/element.js"></script>
 </head>
 
 <body>
@@ -105,12 +110,19 @@
         </div>
         <div>
             <div class="topbar">
+                <el-pagination
+                    :current-page="current_page"
+                    @update:current-page="handle_current_change"
+                    :page-size="page_size"
+                    layout="prev, pager, next, jumper"
+                    :total="total">
+                </el-pagination>
                 <form class="search-form">
                     <input class="search-input">
                     <button class="search-button" type="button" onclick="search(this)">搜索</button>
                 </form>
             </div>
-            <div class="viewport">
+            <div class="viewport" v-loading="loading">
                 <div class="viewcell" v-for="item in items">
                     <img class="preview" v-bind:src="item.img">
                     <p>{{ item.title }}</p>
@@ -119,33 +131,48 @@
         </div>
     </div>
     <script>
-        const { createApp, ref } = Vue;
+        const { createApp } = Vue;
         var app = createApp({
             data() {
                 return {
-                    'menu': ["特色频道", "电影", "电视剧", "游戏", "影视", "音乐", "纪录片", "大视听", "VLOG", "直播", "农人"],
-                    'items': []
+                    menu: ["特色频道", "电影", "电视剧", "游戏", "影视", "音乐", "纪录片", "大视听", "VLOG", "直播", "农人"],
+                    items: [],
+                    current_page: 1,
+                    page_size: 15,
+                    total: 0,
+                    loading: false
                 }
             },
+            async mounted() {
+                const response= await fetch("/api/preview/");
+                let items = await response.json();
+                this.total = items.length;
+                this.items = items.slice(0, this.page_size);
+            },
             methods: {
-                update(items) {
-                    this.items = items
+                update(total, items) {
+                    this.total = total;
+                    this.items = items;
+                },
+                async handle_current_change(page) {
+                    this.loading = true;
+                    const response= await fetch("/api/preview/");
+                    let items = await response.json();
+                    this.total = items.length;
+                    this.items = items.slice((page - 1) * this.page_size, page * this.page_size);
+                    this.current_page = page;
+                    this.loading = false;
                 }
             }
         });
+        app.use(ElementPlus);
         var vm = app.mount('#app');
         async function search(button) {
             const keywords = button.parentElement.firstElementChild.value;
             const response = await fetch('/api/search/' + keywords);
             const items = await response.json();
-            vm.update(items);
+            vm.update(items.length, items);
         }
-        async function load_data() {
-            const response = await fetch("/api/preview/");
-            const items = await response.json();
-            vm.update(items);
-        }
-        load_data();
     </script>
 </body>
 
