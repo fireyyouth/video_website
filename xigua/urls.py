@@ -20,6 +20,5 @@ from app import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/preview/', views.all),
-    path('api/search/<keywords>', views.search)
+    path('api/search/', views.search)
 ]

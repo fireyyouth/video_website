@@ -5,12 +5,11 @@ from django.contrib.postgres.search import SearchQuery
 
 # Create your views here.
 
-def all(request):
-    serializer = PreviewSerializer(Preview.objects.all(), many=True)
-    return JsonResponse(serializer.data, safe=False)
-
-# ref: https://zhuanlan.zhihu.com/p/523233840
-def search(request, keywords):
-    matched_objects = Preview.objects.filter(title_tsvector=SearchQuery(keywords))
+def search(request):
+    keywords = request.GET.get('keywords', '')
+    if keywords:
+        matched_objects = Preview.objects.filter(title_tsvector=SearchQuery(keywords))
+    else:
+        matched_objects = Preview.objects.all()
     serializer = PreviewSerializer(matched_objects, many=True)
     return JsonResponse(serializer.data, safe=False)

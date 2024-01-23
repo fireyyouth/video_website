@@ -118,8 +118,8 @@
                     :total="total">
                 </el-pagination>
                 <form class="search-form">
-                    <input class="search-input">
-                    <button class="search-button" type="button" onclick="search(this)">搜索</button>
+                    <input class="search-input" v-model="keywords">
+                    <button class="search-button" type="button" @click="handle_search">搜索</button>
                 </form>
             </div>
             <div class="viewport" v-loading="loading">
@@ -140,14 +140,12 @@
                     current_page: 1,
                     page_size: 15,
                     total: 0,
-                    loading: false
+                    loading: false,
+                    keywords: ''
                 }
             },
             async mounted() {
-                const response= await fetch("/api/preview/");
-                let items = await response.json();
-                this.total = items.length;
-                this.items = items.slice(0, this.page_size);
+                await this.update_content();
             },
             methods: {
                 update(total, items) {
@@ -155,24 +153,25 @@
                     this.items = items;
                 },
                 async handle_current_change(page) {
+                    this.current_page = page;
+                    await this.update_content();
+                },
+                async handle_search(event) {
+                    this.current_page = 1;
+                    await this.update_content();
+                },
+                async update_content() {
                     this.loading = true;
-                    const response= await fetch("/api/preview/");
+                    const response= await fetch('/api/search/?keywords=' + this.keywords);
                     let items = await response.json();
                     this.total = items.length;
-                    this.items = items.slice((page - 1) * this.page_size, page * this.page_size);
-                    this.current_page = page;
+                    this.items = items.slice((this.current_page - 1) * this.page_size, this.current_page * this.page_size);
                     this.loading = false;
-                }
+                },
             }
         });
         app.use(ElementPlus);
         var vm = app.mount('#app');
-        async function search(button) {
-            const keywords = button.parentElement.firstElementChild.value;
-            const response = await fetch('/api/search/' + keywords);
-            const items = await response.json();
-            vm.update(items.length, items);
-        }
     </script>
 </body>
 
