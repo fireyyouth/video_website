@@ -28,11 +28,13 @@
 
         .menu-item {
             padding: 15px;
+            cursor: pointer;
         }
 
         .logo {
             width: 142px;
             height: 48px;
+            cursor: pointer;
         }
 
         .topbar {
@@ -71,6 +73,7 @@
             border: none;
             border-radius: 0 5px 5px 0;
             background-color: lightgray;
+            cursor: pointer;
         }
 
         .search-button:hover {
@@ -105,20 +108,19 @@
     <div id="app" class="app">
         <div class="sidebar">
             <img class="logo"
+                onclick="window.location.reload()"
                 src="https://lf3-cdn-tos.bdxiguastatic.com/obj/ixigua-static/xigua_fe/xigua_video_web_pc/static/media/logo.6aae7c46.svg"></a>
             <ul class="menu">
-                <li v-for="name in menu" class="menu-item">
-                    <a>
-                        {{ name }}
-                    </a>
+                <li v-for="menu_item in menu" class="menu-item" @click="handle_kind_change" v-bind:kind="menu_item.kind">
+                    {{ menu_item.name }}
                 </li>
             </ul>
         </div>
         <div>
             <div class="topbar">
-                <h class="search-title">
+                <h3 class="search-title">
                     {{ title }}
-                </h>
+                </h3>
                 <el-pagination
                     :current-page="current_page"
                     @update:current-page="handle_current_change"
@@ -147,14 +149,24 @@
         var app = createApp({
             data() {
                 return {
-                    menu: ["特色频道", "电影", "电视剧", "游戏", "影视", "音乐", "纪录片", "大视听", "VLOG", "直播", "农人"],
+                    menu: [
+                        {
+                            kind: "pet",
+                            name: "宠物"
+                        },
+                        {
+                            kind: "agriculture",
+                            name: "农业"
+                        }
+                    ],
                     items: [],
                     current_page: 1,
                     page_size: 15,
                     total: 0,
                     loading: false,
                     title: '',
-                    keywords: ''
+                    keywords: '',
+                    kind: ''
                 }
             },
             async mounted() {
@@ -169,6 +181,12 @@
                     this.current_page = 1;
                     await this.update_content();
                 },
+                async handle_kind_change(event) {
+                    this.kind = event.target.getAttribute('kind');
+                    this.keywords = '';
+                    this.current_page = 1;
+                    await this.update_content();
+                },
                 async update_content() {
                     if (this.keywords.length) {
                         this.title = '"' + this.keywords + '" 的搜索结果';
@@ -176,7 +194,7 @@
                         this.title = '全部内容';
                     }
                     this.loading = true;
-                    const response= await fetch('/api/search/?keywords=' + this.keywords);
+                    const response= await fetch('/api/search/?keywords=' + this.keywords + '&kind=' + this.kind);
                     let items = await response.json();
                     this.total = items.length;
                     this.items = items.slice((this.current_page - 1) * this.page_size, this.current_page * this.page_size);
