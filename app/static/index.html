@@ -126,10 +126,10 @@
                     layout="prev, pager, next, jumper"
                     :total="total">
                 </el-pagination>
-                <form class="search-form">
+                <div class="search-form">
                     <input class="search-input" v-model="keywords">
                     <button class="search-button" type="button" @click="handle_search">搜索</button>
-                </form>
+                </div>
             </div>
             <div class="viewport" v-loading="loading">
                 <div v-if="items.length == 0">
