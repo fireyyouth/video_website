@@ -98,6 +98,10 @@
         .menu-item:hover {
             background-color: lightgray;
         }
+
+        .login-form {
+            display: flex;
+        }
     </style>
     <script src="/static/vue.global.js"></script>
     <link rel="stylesheet" href="/static/element.css">
@@ -132,6 +136,27 @@
                     <input class="search-input" v-model="keywords">
                     <button class="search-button" type="button" @click="handle_search">搜索</button>
                 </div>
+                <div v-if="nickname == null" class="login-form">
+                    <div>
+                        <div>
+                            用户
+                            <input v-model="input_username">
+                        </div>
+                        <div>
+                            密码
+                            <input type="password" v-model="input_password">
+                        </div>
+                    </div>
+                    <button @click="login">登录</button>
+                </div>
+                <div v-else>
+                    <div>
+                        {{ nickname }}
+                    </div>
+                    <button @click="logout">
+                        退出
+                    </button>
+                </div>
             </div>
             <div class="viewport" v-loading="loading">
                 <div v-if="items.length == 0">
@@ -146,6 +171,7 @@
     </div>
     <script>
         const { createApp } = Vue;
+        const { ElMessage } = ElementPlus;
         var app = createApp({
             data() {
                 return {
@@ -166,7 +192,10 @@
                     loading: false,
                     title: '',
                     keywords: '',
-                    kind: ''
+                    kind: '',
+                    input_password: '',
+                    input_username: '',
+                    nickname: window.sessionStorage.getItem('nickname')
                 }
             },
             async mounted() {
@@ -200,6 +229,23 @@
                     this.items = items.slice((this.current_page - 1) * this.page_size, this.current_page * this.page_size);
                     this.loading = false;
                 },
+                async login() {
+                    const response = await fetch('/api/login/?username=' + this.input_username + '&password=' + this.input_password);
+                    if (response.status != 200) {
+                        ElMessage('登录失败');
+                    } else {
+                        const user_info = await response.json();
+                        this.nickname = user_info.nickname;
+                        for (let key in user_info) {
+                            window.sessionStorage.setItem(key, user_info[key]);
+                        }
+                    }
+                },
+                async logout() {
+                    const response = await fetch('/api/logout/');
+                    window.sessionStorage.clear()
+                    this.nickname = null;
+                }
             }
         });
         app.use(ElementPlus);
